@@ -1,0 +1,38 @@
+version: '3.1'
+
+services: 
+  localstack:
+    image: localstack/localstack:latest
+    environment: 
+      - AWS_DEFAULT_REGION=us-east-1
+      - SERVICES=lambda,s3,cloudformation,sts,sqs,dynamodb
+      - EAGER_SERVICE_LOADING=1
+      - LAMBDA_EXECUTOR=docker
+      - LAMBDA_REMOVE_CONTAINERS=true
+      - LAMBDA_REMOTE_DOCKER=true 
+      - LAMBDA_LIMITS_TOTAL_CODE_SIZE=1000000000
+      - LAMBDA_LIMITS_CODE_SIZE_ZIPPED=1000000000
+      - LAMBDA_LIMITS_CODE_SIZE_UNZIPPED=1000000000
+      - LAMBDA_LIMITS_CREATE_FUNCTION_REQUEST_SIZE=1000000000
+    ports: 
+      - '4566-4597:4566-4597'
+    volumes: 
+      - "${TEMPDIR:-/tmp/localstack}:/temp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - "local"
+
+  dynamodb-admin:
+      depends_on:
+        - localstack
+      image: aaronshaf/dynamodb-admin
+      ports:
+        - 8001:8001
+      environment:
+        DYNAMO_ENDPOINT: http://localstack:4566
+      networks:
+        - "local"
+
+networks:
+  local:
+    driver: "bridge"

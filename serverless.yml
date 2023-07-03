@@ -1,0 +1,72 @@
+service: master-degree-serverless
+
+plugins:
+  - serverless-localstack
+  - serverless-python-requirements
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+
+package:
+  exclude:
+    - ./**
+  include:
+    - src/**
+
+custom:
+  localstack:
+    debug: true
+    stages:
+     - local
+     - dev
+    endpointFile: localstack-endpoints.json
+  pythonRequirements:
+    # zip: true
+    dockerizePip: true
+    slim: true
+
+functions:
+  predict:
+    timeout: 300
+    handler: src.handler.handler
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:000000000000:predict-queue
+          batchSize: 1
+
+resources: # CloudFormation from here on.
+  Resources:
+    PredictionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: predictions
+        AttributeDefinitions:
+          - AttributeName: subject_id
+            AttributeType: N
+        KeySchema:
+          - AttributeName: subject_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    PredictQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: predict-queue
+        functionName: predict-function
+    ModelBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: model-bucket
+    LogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/predict-function
+    LogStream:
+      Type: AWS::Logs::LogStream
+      Properties:
+        LogGroupName: !Ref LogGroup
+        LogStreamName: log-stream

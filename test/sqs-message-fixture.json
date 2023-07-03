@@ -1,0 +1,12 @@
+{
+    "Records": [
+        {
+            "messageId": "9a9fcd60-cd49-4bb5-9ea2-8b6911fdd9f6",
+            "body": "{\"Message\": {\"subject_id\":\"1\", \"vital_signs\":[85.0, 35.7, 99.0]}}"
+        },
+        {
+            "messageId": "9a9fcd60-cd49-4bb5-9ea2-8b6911fdd9f6",
+            "body": "{\"Message\": {\"subject_id\":\"2\", \"vital_signs\":[80.0, 36.7, 98.0]}}"
+        }
+    ]
+}
